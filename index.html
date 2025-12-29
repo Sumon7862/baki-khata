@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Baki Khata</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>📒 Baki Khata</h1>
+
+  <form id="form">
+    <input type="text" id="name" placeholder="Customer Name / কাস্টমারের নাম" required>
+    <input type="number" id="amount" placeholder="Amount / টাকা" required>
+
+    <select id="type">
+      <option value="baki">➕ Due (বাকি)</option>
+      <option value="payment">➖ Payment (জমা)</option>
+    </select>
+
+    <input type="text" id="note" placeholder="Note (optional) / নোট">
+    <button>Add</button>
+  </form>
+
+  <input type="text" id="search" placeholder="🔍 Search customer">
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Balance</th>
+          <th>History</th>
+          <th>Note</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+
+  <h2 id="total">Total Baki: ৳0</h2>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <p>এই কাস্টমারের সব হিসাব মুছে ফেলবেন?</p>
+    <div class="modal-btns">
+      <button id="confirmDelete">Yes</button>
+      <button id="cancelDelete">No</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
