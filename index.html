@@ -27,7 +27,7 @@
     <div id="customerList"></div>
 
     <!-- GRAND TOTAL -->
-    <h3 id="grandTotal">Total Due: ৳ 0</h3>
+    <h3 id="grandTotal">Total Due: 0 Taka</h3>
   </div>
 
   <!-- PAGE 2: CUSTOMER DETAILS -->
@@ -48,16 +48,14 @@
     </form>
 
     <div id="history"></div>
-
-    <button class="delete full" onclick="openModal()">Delete Customer</button>
   </div>
 
 </div>
 
-<!-- DELETE MODAL -->
+<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <p>Are you sure?</p>
+    <p id="modalText">Are you sure?</p>
     <div class="modal-btns">
       <button id="confirmDelete">Yes</button>
       <button onclick="closeModal()">No</button>

@@ -110,3 +110,31 @@ button {
     padding: 10px;
   }
 }
+
+/* Transaction edit/delete */
+.tx-btn {
+  cursor: pointer;
+  margin-left: 5px;
+  font-size: 14px;
+  color: #2563eb;
+}
+
+.tx-btn.delete {
+  color: #dc3545;
+}
+
+/* Customer delete icon 1st page */
+.customer-row .del-customer {
+  color: #dc3545;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+/* adjust spacing */
+.customer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
