@@ -1,116 +1,140 @@
 let customers = JSON.parse(localStorage.getItem("customers")) || [];
-let deleteId = null;
+let currentCustomer = null;
 
-const form = document.getElementById("form");
-const list = document.getElementById("list");
-const totalText = document.getElementById("total");
-const search = document.getElementById("search");
-const modal = document.getElementById("modal");
+const listPage = document.getElementById("page-list");
+const detailPage = document.getElementById("page-detail");
+const customerList = document.getElementById("customerList");
+const historyBox = document.getElementById("history");
 
-form.addEventListener("submit", e => {
+/* FORMAT DATE */
+function formatDate() {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+/* ADD CUSTOMER */
+document.getElementById("addCustomerForm").onsubmit = e => {
   e.preventDefault();
 
-  const nameInput = form.name.value.trim();
-  const key = nameInput.toLowerCase(); // case-insensitive
-  const amount = Number(form.amount.value);
-  const type = form.type.value;
-  const note = form.note.value.trim();
+  const name = customerName.value.trim();
+  if (!name) return;
 
-  let customer = customers.find(c => c.key === key);
-
-  if (!customer) {
-    customer = {
-      id: Date.now(),
-      key,
-      name: nameInput,
-      transactions: []
-    };
-    customers.push(customer);
+  const key = name.toLowerCase();
+  const exists = customers.find(c => c.key === key);
+  if (exists) {
+    alert("Customer already exists");
+    return;
   }
 
-  const now = new Date();
-  const date = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-
-  customer.transactions.push({
-    type,
-    amount,
-    note,
-    date
+  customers.push({
+    id: Date.now(),
+    name,
+    key,
+    transactions: []
   });
 
   save();
-  form.reset();
-  render();
-});
+  e.target.reset();
+  renderList();
+};
 
-function render(filter = "") {
-  list.innerHTML = "";
-  let totalBaki = 0;
+/* RENDER CUSTOMER LIST + GRAND TOTAL */
+function renderList(filter = "") {
+  customerList.innerHTML = "";
+  let grandTotal = 0;
 
   customers
     .filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
-    .forEach((c, index) => {
+    .forEach((c, i) => {
+      const balance = c.transactions.reduce((s, t) => t.type==="baki"?s+t.amount:s-t.amount,0);
+      grandTotal += balance;
 
-      let balance = 0;
-      let historyHTML = "";
-      let noteHTML = "";
-
-      c.transactions.forEach(t => {
-        balance += t.type === "baki" ? t.amount : -t.amount;
-      });
-
-      [...c.transactions].reverse().forEach(t => {
-        historyHTML += `
-          <div class="${t.type}">
-            ${t.date} - ${t.type === "baki" ? "Due" : "Payment"}: ৳${t.amount}
-          </div>
-        `;
-        if (t.note) {
-          noteHTML += `<div>${t.note}</div>`;
-        }
-      });
-
-      totalBaki += balance;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${c.name}</td>
-        <td>৳${balance}</td>
-        <td class="history">${historyHTML}</td>
-        <td class="history">${noteHTML || "-"}</td>
-        <td>
-          <span class="delete" onclick="openModal(${c.id})">Delete</span>
-        </td>
-      `;
-
-      tr.onclick = () => form.name.value = c.name;
-      list.appendChild(tr);
+      const row = document.createElement("div");
+      row.className = "customer-row";
+      row.innerHTML = `<span>${i+1}. ${c.name}</span><span class="balance">৳ ${balance}</span>`;
+      row.onclick = () => openCustomer(c.id);
+      customerList.appendChild(row);
     });
 
-  totalText.innerText = `Total Baki: ৳${totalBaki}`;
+  document.getElementById("grandTotal").innerText = `Total Due: ৳ ${grandTotal}`;
 }
 
-function openModal(id) {
-  deleteId = id;
+document.getElementById("search").oninput = e => renderList(e.target.value);
+
+/* OPEN CUSTOMER DETAILS PAGE */
+function openCustomer(id) {
+  currentCustomer = customers.find(c => c.id === id);
+  listPage.style.display = "none";
+  detailPage.style.display = "block";
+  renderDetail();
+}
+
+/* RENDER CUSTOMER DETAILS */
+function renderDetail() {
+  let balance = 0;
+  historyBox.innerHTML = "";
+
+  currentCustomer.transactions.forEach(t => {
+    balance += t.type==="baki"?t.amount:-t.amount;
+  });
+
+  detailName.innerText = currentCustomer.name;
+  detailBalance.innerText = `Total Due: ৳ ${balance}`;
+
+  [...currentCustomer.transactions].reverse().forEach(t => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.innerHTML = `
+      <div class="${t.type}">${t.date} - ${t.type==="baki"?"Due":"Payment"}: ৳${t.amount}</div>
+      ${t.note?`<small>${t.note}</small>`:""}
+    `;
+    historyBox.appendChild(div);
+  });
+}
+
+/* ADD TRANSACTION */
+detailForm.onsubmit = e => {
+  e.preventDefault();
+
+  currentCustomer.transactions.push({
+    amount: Number(amount.value),
+    type: type.value,
+    note: note.value.trim(),
+    date: formatDate()
+  });
+
+  save();
+  e.target.reset();
+  renderDetail();
+};
+
+/* NAVIGATION */
+function goBack() {
+  detailPage.style.display = "none";
+  listPage.style.display = "block";
+  renderList();
+}
+
+/* DELETE CUSTOMER */
+function openModal() {
   modal.style.display = "flex";
 }
 
-document.getElementById("confirmDelete").onclick = () => {
-  customers = customers.filter(c => c.id !== deleteId);
+function closeModal() {
+  modal.style.display = "none";
+}
+
+confirmDelete.onclick = () => {
+  customers = customers.filter(c => c.id !== currentCustomer.id);
   save();
-  modal.style.display = "none";
-  render();
+  closeModal();
+  goBack();
 };
 
-document.getElementById("cancelDelete").onclick = () => {
-  modal.style.display = "none";
-};
-
-search.addEventListener("input", e => render(e.target.value));
-
+/* LOCALSTORAGE SAVE */
 function save() {
   localStorage.setItem("customers", JSON.stringify(customers));
 }
 
-render();
+/* INITIAL RENDER */
+renderList();

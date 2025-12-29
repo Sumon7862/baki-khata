@@ -9,49 +9,58 @@
 <body>
 
 <div class="container">
-  <h1>📒 Baki Khata</h1>
 
-  <form id="form">
-    <input type="text" id="name" placeholder="Customer Name" required>
-    <input type="number" id="amount" placeholder="Amount" required>
+  <!-- PAGE 1: CUSTOMER LIST -->
+  <div id="page-list">
+    <h1>📒 Baki Khata</h1>
 
-    <select id="type">
-      <option value="baki">Due</option>
-      <option value="payment">Payment</option>
-    </select>
+    <!-- ADD CUSTOMER -->
+    <form id="addCustomerForm">
+      <input type="text" id="customerName" placeholder="Customer name" required>
+      <button>Add Customer</button>
+    </form>
 
-    <input type="text" id="note" placeholder="Note (optional)">
-    <button>Add</button>
-  </form>
+    <!-- SEARCH -->
+    <input type="text" id="search" placeholder="🔍 Search customer">
 
-  <input type="text" id="search" placeholder="🔍 Search customer">
+    <!-- CUSTOMER LIST -->
+    <div id="customerList"></div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Balance</th>
-          <th>History</th>
-          <th>Note</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="list"></tbody>
-    </table>
+    <!-- GRAND TOTAL -->
+    <h3 id="grandTotal">Total Due: ৳ 0</h3>
   </div>
 
-  <h2 id="total">Total Baki: 0</h2>
+  <!-- PAGE 2: CUSTOMER DETAILS -->
+  <div id="page-detail" style="display:none">
+    <button class="back-btn" onclick="goBack()">⬅ Back</button>
+
+    <h2 id="detailName"></h2>
+    <h3 id="detailBalance"></h3>
+
+    <form id="detailForm">
+      <input type="number" id="amount" placeholder="Amount" required>
+      <select id="type">
+        <option value="baki">Due</option>
+        <option value="payment">Payment</option>
+      </select>
+      <input type="text" id="note" placeholder="Note (optional)">
+      <button>Add</button>
+    </form>
+
+    <div id="history"></div>
+
+    <button class="delete full" onclick="openModal()">Delete Customer</button>
+  </div>
+
 </div>
 
-<!-- Delete Modal -->
+<!-- DELETE MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
     <p>Are you sure?</p>
     <div class="modal-btns">
       <button id="confirmDelete">Yes</button>
-      <button id="cancelDelete">No</button>
+      <button onclick="closeModal()">No</button>
     </div>
   </div>
 </div>
