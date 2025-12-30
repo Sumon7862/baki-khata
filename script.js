@@ -69,25 +69,33 @@ function openCustomer(id){
 
 /* RENDER CUSTOMER DETAILS */
 function renderDetail(){
-  let balance=0;
-  historyBox.innerHTML="";
-  currentCustomer.transactions.forEach(t=>balance+=t.type==="baki"?t.amount:-t.amount);
-  detailName.innerText=currentCustomer.name;
+  let balance = 0;
+  currentCustomer.transactions.forEach(t => balance += t.type==="baki"?t.amount:-t.amount);
+  detailName.innerText = currentCustomer.name;
   detailBalance.innerText=`Total Due: ${balance} Taka`;
 
-  [...currentCustomer.transactions].reverse().forEach((t,index)=>{
-    const div=document.createElement("div");
-    div.className="history-item";
-    div.innerHTML=`
-      <div class="${t.type}">
-        ${t.date} - ${t.type==="baki"?"Due":"Payment"}: ${t.amount} Taka
-        <span class="tx-btn" onclick="editTransaction(event,${currentCustomer.transactions.length-1-index})">✏️</span>
-        <span class="tx-btn delete" onclick="deleteTransaction(event,${currentCustomer.transactions.length-1-index})">🗑️</span>
-      </div>
-      ${t.note?`<small>${t.note}</small>`:""}
+  // If total due is 0, clear all transactions
+  if(balance === 0 && currentCustomer.transactions.length > 0){
+    currentCustomer.transactions = [];
+    save();
+  }
+
+  historyBox.innerHTML=""; 
+  [...currentCustomer.transactions].reverse().forEach((t, revIndex) => {
+    const index = currentCustomer.transactions.length - 1 - revIndex;
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${t.date}</td>
+      <td class="${t.type}">${t.type==="baki"?"Due":"Payment"}</td>
+      <td>${t.amount} Tk</td>
+      <td>${t.note || "-"}</td>
+      <td class="tx-btn edit" onclick="editTransaction(event,${index})">✏️</td>
+      <td class="tx-btn delete" onclick="deleteTransaction(event,${index})">🗑️</td>
     `;
-    historyBox.appendChild(div);
+    historyBox.appendChild(row);
   });
+
+  renderList(); // Update 1st page balances
 }
 
 /* ADD / EDIT TRANSACTION */
@@ -99,12 +107,14 @@ detailForm.onsubmit = e=>{
     note:note.value.trim(),
     date:formatDate()
   };
+
   if(editingTransaction!==null){
     currentCustomer.transactions[editingTransaction]=tx;
     editingTransaction=null;
   } else {
     currentCustomer.transactions.push(tx);
   }
+
   detailForm.reset();
   save();
   renderDetail();
@@ -123,7 +133,7 @@ function editTransaction(e,index){
 /* DELETE TRANSACTION */
 function deleteTransaction(e,index){
   e.stopPropagation();
-  if(confirm("Delete this transaction?")){
+  if(confirm("Delete this entry?")){
     currentCustomer.transactions.splice(index,1);
     save();
     renderDetail();
@@ -138,7 +148,7 @@ function goBack(){
 }
 
 /* LOCALSTORAGE SAVE */
-function save(){localStorage.setItem("customers",JSON.stringify(customers))}
+function save(){ localStorage.setItem("customers",JSON.stringify(customers)) }
 
 /* INITIAL RENDER */
 renderList();
