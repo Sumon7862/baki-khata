@@ -39,6 +39,7 @@ th{background:#f3f4f6}
 <button>Add Customer</button>
 </form>
 
+<input type="text" id="search" placeholder="🔍 Search customer">
 <div id="customerList"></div>
 <h3 id="grandTotal">Total Due: 0 Taka</h3>
 </div>
@@ -80,7 +81,7 @@ th{background:#f3f4f6}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, doc, deleteDoc, updateDoc,
-  onSnapshot, query, orderBy, serverTimestamp
+  onSnapshot, query, orderBy, serverTimestamp, getDocs
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 /* ===== Firebase ===== */
@@ -101,10 +102,12 @@ const detailName=document.getElementById("detailName");
 const detailBalance=document.getElementById("detailBalance");
 const history=document.getElementById("history");
 const grandTotalEl=document.getElementById("grandTotal");
+const searchInput=document.getElementById("search");
 
 let currentCustomerId=null;
 let editingTxId=null;
 let unsubTx=null;
+let customersData=[];
 
 /* ===== Utils ===== */
 const formatDate=()=>{
@@ -114,39 +117,60 @@ const formatDate=()=>{
 
 /* ================= PAGE 1 REALTIME ================= */
 onSnapshot(collection(db,"customers"),snap=>{
+  customersData=[];
+  snap.forEach(d=>{
+    customersData.push({id:d.id,...d.data()});
+  });
+  renderCustomerList();
+});
+
+/* ================= RENDER CUSTOMER LIST ================= */
+function renderCustomerList(filter=""){
   customerList.innerHTML="";
   let total=0,i=1;
 
-  snap.forEach(d=>{
-    const c=d.data();
+  const filtered=customersData.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase()));
+  filtered.forEach(c=>{
     total+=c.balance||0;
-
     const row=document.createElement("div");
     row.className="customer-row";
     row.innerHTML=`
       <span style="flex:1">${i++}. ${c.name} - ${c.balance||0} Tk</span>
       <span class="del-customer">🗑️</span>
     `;
-
-    row.onclick=()=>openCustomer(d.id,c.name);
+    row.onclick=()=>openCustomer(c.id,c.name);
     row.querySelector(".del-customer").onclick=async e=>{
       e.stopPropagation();
       if(confirm("Delete customer?")){
-        await deleteDoc(doc(db,"customers",d.id));
+        await deleteDoc(doc(db,"customers",c.id));
       }
     };
-
     customerList.appendChild(row);
   });
 
   grandTotalEl.innerText=`Total Due: ${total} Taka`;
+}
+
+/* ================= SEARCH ================= */
+searchInput.addEventListener("input",()=>{
+  renderCustomerList(searchInput.value.trim());
 });
 
 /* ================= ADD CUSTOMER ================= */
 addCustomerForm.onsubmit=async e=>{
   e.preventDefault();
+  const nameInput=customerName.value.trim();
+  if(!nameInput) return;
+
+  // Check existing customer (case-insensitive)
+  const exists=customersData.some(c=>c.name.toLowerCase()===nameInput.toLowerCase());
+  if(exists){
+    alert("Customer already exists!");
+    return;
+  }
+
   await addDoc(collection(db,"customers"),{
-    name:customerName.value.trim(),
+    name:nameInput,
     balance:0,
     createdAt:serverTimestamp()
   });
@@ -178,9 +202,7 @@ function listenTransactions(){
 
       snap.forEach(d=>{
         txs.push({id:d.id,...d.data()});
-        balance+=d.data().type==="baki"
-          ? d.data().amount
-          : -d.data().amount;
+        balance+=d.data().type==="baki"?d.data().amount:-d.data().amount;
       });
 
       detailBalance.innerText=`Total Due: ${balance} Taka`;
