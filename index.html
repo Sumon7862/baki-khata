@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Baki Khata Firebase</title>
+<title>Baki Khata</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- PDF LIB -->
@@ -284,17 +284,49 @@ window.editTx=(id,a,t,n)=>{ editingTxId=id; amount.value=a; type.value=t; note.v
 window.deleteTx=async id=>{ if(confirm("Delete transaction?")) await deleteDoc(doc(db,"customers",currentCustomerId,"transactions",id)); };
 
 /* ===== PDF HISTORY DOWNLOAD ===== */
-window.downloadHistory=async(id,name)=>{
-  const snap=await getDocs(query(collection(db,"customers",id,"transactions"),orderBy("createdAt","asc")));
-  if(snap.empty){alert("No history");return;}
+window.downloadHistory = async (id, name) => {
+  const snap = await getDocs(
+    query(
+      collection(db, "customers", id, "transactions"),
+      orderBy("createdAt", "asc")
+    )
+  );
+
+  if (snap.empty) {
+    alert("No history");
+    return;
+  }
+
   const { jsPDF } = window.jspdf;
-  const pdf=new jsPDF();
-  pdf.text(`Customer History: ${name}`,14,15);
-  const rows=[];
-  snap.forEach(d=>{ const t=d.data(); rows.push([t.date,t.type,t.amount,t.note||"-"]); });
-  pdf.autoTable({ head:[["Date","Type","Amount","Note"]], body:rows, startY:20 });
+  const pdf = new jsPDF();
+
+  /* ===== CUSTOMER NAME (CENTER + BOLD) ===== */
+  pdf.setFont("helvetica", "bold");   // bold
+  pdf.setFontSize(16);                // font size
+  pdf.setTextColor(0, 0, 0);          // black
+  pdf.text(name, 105, 15, { align: "center" }); // center (A4 width / 2)
+
+  /* ===== TABLE DATA ===== */
+  const rows = [];
+  snap.forEach(d => {
+    const t = d.data();
+    rows.push([
+      t.date,
+      t.type === "baki" ? "Due" : "Payment",
+      t.amount,
+      t.note || "-"
+    ]);
+  });
+
+  pdf.autoTable({
+    head: [["Date", "Type", "Amount", "Note"]],
+    body: rows,
+    startY: 25
+  });
+
   pdf.save(`${name}_history.pdf`);
 };
+
 
 /* ===== BACK ===== */
 window.goBack=()=>{ pageDetail.style.display="none"; pageList.style.display="block"; if(unsubTx)unsubTx(); };
