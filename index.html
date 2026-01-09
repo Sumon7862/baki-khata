@@ -58,25 +58,34 @@ th{background:#f1f5f9;font-weight:600}
 /* ===== TRANSACTION ===== */
 .baki{color:#dc2626;font-weight:600}
 .payment{color:#16a34a;font-weight:600}
+
+/* ===== LOGIN PAGE ===== */
+#loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
+#loginPage input{width:80%;margin:6px 0;padding:10px;font-size:16px}
+#loginPage button{width:80%;padding:10px;font-size:16px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer}
+#loginPage button:hover{opacity:.9}
 </style>
 </head>
-
 <body>
-<div class="container">
+
+<!-- ===== LOGIN PAGE ===== -->
+<div class="container" id="loginPage">
+<h1>Admin Login</h1>
+<input type="email" id="loginEmail" placeholder="Email" required>
+<input type="password" id="loginPassword" placeholder="Password" required>
+<button id="loginBtn">Login</button>
+<p id="loginError" style="color:red;text-align:center"></p>
+</div>
 
 <!-- ================= PAGE 1 ================= -->
-<div id="page-list">
+<div class="container" id="page-list" style="display:none">
 <h1>📒 Baki Khata</h1>
-
 <form id="addCustomerForm">
 <input id="customerName" placeholder="Customer Name" required>
 <button>Add Customer</button>
 </form>
-
 <input id="search" placeholder="Search Customer">
-
 <h3 id="grandTotal">Total Due: 0 Taka</h3>
-
 <table>
 <thead>
 <tr>
@@ -93,25 +102,20 @@ th{background:#f1f5f9;font-weight:600}
 </div>
 
 <!-- ================= PAGE 2 ================= -->
-<div id="page-detail" style="display:none">
+<div class="container" id="page-detail" style="display:none">
 <button class="back-btn" onclick="goBack()">⬅ Back</button>
-
 <h2 id="detailName"></h2>
 <h3 id="detailBalance"></h3>
-
 <form id="detailForm">
 <input type="number" id="amount" placeholder="Amount" required>
-
 <select id="type">
   <option value="baki">Due</option>
   <option value="payment">Payment</option>
 </select>
-
 <input type="date" id="date">
 <input id="note" placeholder="Note">
 <button>Add</button>
 </form>
-
 <table id="txTable" style="display:none">
 <thead>
 <tr>
@@ -127,14 +131,15 @@ th{background:#f1f5f9;font-weight:600}
 </table>
 </div>
 
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, doc, deleteDoc, updateDoc,
   onSnapshot, query, orderBy, serverTimestamp, getDocs
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
 /* ===== FIREBASE ===== */
 const firebaseConfig={
@@ -144,8 +149,15 @@ const firebaseConfig={
 };
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
+const auth=getAuth(app);
 
 /* ===== DOM ===== */
+const loginPage=document.getElementById("loginPage");
+const loginBtn=document.getElementById("loginBtn");
+const loginEmail=document.getElementById("loginEmail");
+const loginPassword=document.getElementById("loginPassword");
+const loginError=document.getElementById("loginError");
+
 const customerList=document.getElementById("customerList");
 const pageList=document.getElementById("page-list");
 const pageDetail=document.getElementById("page-detail");
@@ -161,16 +173,27 @@ let currentCustomerId=null;
 let editingTxId=null;
 let unsubTx=null;
 
-/* ===== UTILS ===== */
-const todayDMY=()=>{
-  const d=new Date();
-  return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+/* ===== LOGIN SYSTEM ===== */
+loginBtn.onclick=()=>{
+  const email=loginEmail.value.trim();
+  const password=loginPassword.value.trim();
+  loginError.innerText="";
+  signInWithEmailAndPassword(auth,email,password)
+  .then(()=>{ loginPage.style.display="none"; pageList.style.display="block"; })
+  .catch(err=>{ loginError.innerText="Invalid email or password"; });
 };
+
+onAuthStateChanged(auth,user=>{
+  if(user){ loginPage.style.display="none"; pageList.style.display="block"; }
+  else{ loginPage.style.display="flex"; pageList.style.display="none"; pageDetail.style.display="none"; }
+});
+
+/* ===== UTILS ===== */
+const todayDMY=()=>{ const d=new Date(); return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`; };
 
 /* ===== PAGE 1 REALTIME ===== */
 onSnapshot(collection(db,"customers"),snap=>{
-  customers=[];
-  snap.forEach(d=>customers.push({id:d.id,...d.data()}));
+  customers=[]; snap.forEach(d=>customers.push({id:d.id,...d.data()}));
   renderCustomers(searchInput.value);
 });
 
@@ -178,17 +201,14 @@ onSnapshot(collection(db,"customers"),snap=>{
 function renderCustomers(filter=""){
   customerList.innerHTML="";
   let total=0, i=1;
-
   customers
     .filter(c=>c.name.toLowerCase().includes(filter.toLowerCase()))
     .sort((a,b)=>(b.balance||0)-(a.balance||0))
     .forEach(c=>{
       total+=c.balance||0;
-
       let cls="low-due";
       if(c.balance>=1000) cls="high-due";
       else if(c.balance>=500) cls="mid-due";
-
       customerList.innerHTML+=`
       <tr class="${cls}">
         <td>${i++}</td>
@@ -199,7 +219,6 @@ function renderCustomers(filter=""){
         <td class="icon history" onclick="downloadHistory('${c.id}','${c.name}')">📄</td>
       </tr>`;
     });
-
   grandTotal.innerText=`Total Due: ${total} Taka`;
 }
 searchInput.oninput=()=>renderCustomers(searchInput.value);
@@ -212,31 +231,16 @@ addCustomerForm.onsubmit=async e=>{
     alert("Customer already exists");
     return;
   }
-  await addDoc(collection(db,"customers"),{
-    name,balance:0,createdAt:serverTimestamp()
-  });
+  await addDoc(collection(db,"customers"),{ name,balance:0,createdAt:serverTimestamp() });
   addCustomerForm.reset();
 };
 
 /* ===== CUSTOMER ACTION ===== */
-window.editCustomer=async(id,name)=>{
-  const n=prompt("Edit name",name);
-  if(n) await updateDoc(doc(db,"customers",id),{name:n});
-};
-window.deleteCustomer=async id=>{
-  if(confirm("Delete customer?")){
-    await deleteDoc(doc(db,"customers",id));
-  }
-};
+window.editCustomer=async(id,name)=>{ const n=prompt("Edit name",name); if(n) await updateDoc(doc(db,"customers",id),{name:n}); };
+window.deleteCustomer=async id=>{ if(confirm("Delete customer?")) await deleteDoc(doc(db,"customers",id)); };
 
 /* ===== OPEN CUSTOMER ===== */
-window.openCustomer=(id,name)=>{
-  currentCustomerId=id;
-  detailName.innerText=name;
-  pageList.style.display="none";
-  pageDetail.style.display="block";
-  listenTx();
-};
+window.openCustomer=(id,name)=>{ currentCustomerId=id; detailName.innerText=name; pageList.style.display="none"; pageDetail.style.display="block"; listenTx(); };
 
 /* ===== TRANSACTIONS ===== */
 function listenTx(){
@@ -244,9 +248,7 @@ function listenTx(){
   unsubTx=onSnapshot(
     query(collection(db,"customers",currentCustomerId,"transactions"),orderBy("createdAt","desc")),
     snap=>{
-      history.innerHTML="";
-      let balance=0;
-
+      history.innerHTML=""; let balance=0;
       snap.forEach(d=>{
         const t=d.data();
         balance+=t.type==="baki"?t.amount:-t.amount;
@@ -260,7 +262,6 @@ function listenTx(){
           <td onclick="deleteTx('${d.id}')">🗑️</td>
         </tr>`;
       });
-
       detailBalance.innerText=`Total Due: ${balance} Taka`;
       txTable.style.display = balance===0 ? "none" : "table";
       updateDoc(doc(db,"customers",currentCustomerId),{balance});
@@ -271,67 +272,33 @@ function listenTx(){
 /* ===== ADD / EDIT TX ===== */
 detailForm.onsubmit=async e=>{
   e.preventDefault();
-  const tx={
-    amount:+amount.value,
-    type:type.value,
-    note:note.value,
+  const tx={ amount:+amount.value, type:type.value, note:note.value,
     date:date.value?date.value.split("-").reverse().join("-"):todayDMY(),
-    createdAt:Date.now()
-  };
+    createdAt:Date.now() };
   const col=collection(db,"customers",currentCustomerId,"transactions");
-  if(editingTxId){
-    await updateDoc(doc(col,editingTxId),tx);
-    editingTxId=null;
-  }else{
-    await addDoc(col,tx);
-  }
+  if(editingTxId){ await updateDoc(doc(col,editingTxId),tx); editingTxId=null; }
+  else{ await addDoc(col,tx); }
   detailForm.reset();
 };
 
-window.editTx=(id,a,t,n)=>{
-  editingTxId=id;
-  amount.value=a;
-  type.value=t;
-  note.value=n;
-};
-window.deleteTx=async id=>{
-  if(confirm("Delete transaction?")){
-    await deleteDoc(doc(db,"customers",currentCustomerId,"transactions",id));
-  }
-};
+window.editTx=(id,a,t,n)=>{ editingTxId=id; amount.value=a; type.value=t; note.value=n; };
+window.deleteTx=async id=>{ if(confirm("Delete transaction?")) await deleteDoc(doc(db,"customers",currentCustomerId,"transactions",id)); };
 
 /* ===== PDF HISTORY DOWNLOAD ===== */
 window.downloadHistory=async(id,name)=>{
-  const snap=await getDocs(
-    query(collection(db,"customers",id,"transactions"),orderBy("createdAt","asc"))
-  );
+  const snap=await getDocs(query(collection(db,"customers",id,"transactions"),orderBy("createdAt","asc")));
   if(snap.empty){alert("No history");return;}
-
   const { jsPDF } = window.jspdf;
   const pdf=new jsPDF();
   pdf.text(`Customer History: ${name}`,14,15);
-
   const rows=[];
-  snap.forEach(d=>{
-    const t=d.data();
-    rows.push([t.date,t.type,t.amount,t.note||"-"]);
-  });
-
-  pdf.autoTable({
-    head:[["Date","Type","Amount","Note"]],
-    body:rows,
-    startY:20
-  });
-
+  snap.forEach(d=>{ const t=d.data(); rows.push([t.date,t.type,t.amount,t.note||"-"]); });
+  pdf.autoTable({ head:[["Date","Type","Amount","Note"]], body:rows, startY:20 });
   pdf.save(`${name}_history.pdf`);
 };
 
 /* ===== BACK ===== */
-window.goBack=()=>{
-  pageDetail.style.display="none";
-  pageList.style.display="block";
-  if(unsubTx)unsubTx();
-};
+window.goBack=()=>{ pageDetail.style.display="none"; pageList.style.display="block"; if(unsubTx)unsubTx(); };
 </script>
 </body>
 </html>
