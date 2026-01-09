@@ -7,23 +7,47 @@
 
 <style>
 *{box-sizing:border-box;font-family:system-ui,Arial}
-body{background:#eef2f7;padding:10px}
-.container{max-width:480px;margin:auto;background:#fff;padding:10px;border-radius:12px}
-h1,h2,h3{text-align:center;font-size:16px}
-input,select,button{width:100%;padding:8px;margin:4px 0;border-radius:6px;border:1px solid #ccc;font-size:14px}
+body{background:#0f172a;padding:10px}
+.container{max-width:520px;margin:auto;background:#ffffff;padding:12px;border-radius:14px}
+
+h1{text-align:center;font-size:20px;color:#0f172a}
+h2,h3{text-align:center;font-size:15px}
+
+input,select,button{
+  width:100%;padding:9px;margin:5px 0;
+  border-radius:8px;border:1px solid #cbd5f5;font-size:14px
+}
 button{background:#2563eb;color:#fff;border:none;cursor:pointer}
-.back-btn{background:#6b7280;margin-bottom:6px}
-.customer-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #ddd;cursor:pointer}
-.customer-row:hover{background:#f1f5f9}
-.del-customer{color:#dc3545;cursor:pointer}
-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}
-th,td{border:1px solid #ccc;padding:6px;text-align:center}
-th{background:#f3f4f6}
-.tx-btn{cursor:pointer}
+button:hover{opacity:.9}
+
+.back-btn{width:25%;margin-bottom:8px}
+
+#grandTotal,#detailBalance{
+  background:#020617;color:#e5e7eb;
+  padding:6px 0;width:60%;border-radius:20px;
+  margin:10px auto;font-weight:500
+}
+#detailName{
+  text-transform:capitalize;
+  background:#16a34a;color:#fff;
+  padding:6px 0;width:60%;
+  border-radius:20px;
+  margin:10px auto;font-weight:600
+}
+
+/* ===== CUSTOMER TABLE ===== */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #e5e7eb;padding:6px;text-align:center}
+th{background:#f1f5f9;font-weight:600}
+
+.icon{cursor:pointer;font-size:16px}
 .edit{color:#2563eb}
-.delete{color:#dc3545}
-.baki{color:red;font-weight:bold}
-.payment{color:green;font-weight:bold}
+.delete{color:#dc2626}
+.history{color:#0f766e}
+
+/* ===== TRANSACTION ===== */
+.baki{color:#dc2626;font-weight:600}
+.payment{color:#16a34a;font-weight:600}
 </style>
 </head>
 
@@ -35,32 +59,50 @@ th{background:#f3f4f6}
 <h1>📒 Baki Khata</h1>
 
 <form id="addCustomerForm">
-<input id="customerName" placeholder="Customer name" required>
+<input id="customerName" placeholder="Customer Name" required>
 <button>Add Customer</button>
 </form>
 
-<input type="text" id="search" placeholder="🔍 Search customer">
-<div id="customerList"></div>
+<input id="search" placeholder="🔍 Search Customer">
+
 <h3 id="grandTotal">Total Due: 0 Taka</h3>
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Name</th>
+<th>Balance</th>
+<th>Edit</th>
+<th>Delete</th>
+<th>History</th>
+</tr>
+</thead>
+<tbody id="customerList"></tbody>
+</table>
 </div>
 
 <!-- PAGE 2 -->
 <div id="page-detail" style="display:none">
 <button class="back-btn" onclick="goBack()">⬅ Back</button>
+
 <h2 id="detailName"></h2>
 <h3 id="detailBalance"></h3>
 
 <form id="detailForm">
 <input type="number" id="amount" placeholder="Amount" required>
+
 <select id="type">
-<option value="baki">Due</option>
-<option value="payment">Payment</option>
+  <option value="baki">Due</option>
+  <option value="payment">Payment</option>
 </select>
+
+<input type="date" id="date">
 <input id="note" placeholder="Note">
 <button>Add</button>
 </form>
 
-<table>
+<table id="txTable" style="display:none">
 <thead>
 <tr>
 <th>Date</th>
@@ -84,13 +126,12 @@ import {
   onSnapshot, query, orderBy, serverTimestamp, getDocs
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-/* ===== Firebase ===== */
+/* ===== FIREBASE ===== */
 const firebaseConfig={
   apiKey:"AIzaSyDO5I_osPflsq1MrPOY7YJ46iDNJKWlQWE",
   authDomain:"baki-khata-e0941.firebaseapp.com",
   projectId:"baki-khata-e0941"
 };
-
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
@@ -101,179 +142,163 @@ const pageDetail=document.getElementById("page-detail");
 const detailName=document.getElementById("detailName");
 const detailBalance=document.getElementById("detailBalance");
 const history=document.getElementById("history");
-const grandTotalEl=document.getElementById("grandTotal");
+const txTable=document.getElementById("txTable");
+const grandTotal=document.getElementById("grandTotal");
 const searchInput=document.getElementById("search");
 
+let customers=[];
 let currentCustomerId=null;
 let editingTxId=null;
 let unsubTx=null;
-let customersData=[];
 
-/* ===== Utils ===== */
-const formatDate=()=>{
+/* ===== UTILS ===== */
+const todayDMY=()=>{
   const d=new Date();
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`
+  return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
 };
 
-/* ================= PAGE 1 REALTIME ================= */
+/* ===== PAGE 1 ===== */
 onSnapshot(collection(db,"customers"),snap=>{
-  customersData=[];
-  snap.forEach(d=>{
-    customersData.push({id:d.id,...d.data()});
-  });
-  renderCustomerList();
+  customers=[];
+  snap.forEach(d=>customers.push({id:d.id,...d.data()}));
+  renderCustomers(searchInput.value);
 });
 
-/* ================= RENDER CUSTOMER LIST ================= */
-function renderCustomerList(filter=""){
+function renderCustomers(filter=""){
   customerList.innerHTML="";
-  let total=0,i=1;
+  let total=0, i=1;
 
-  const filtered=customersData.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase()));
-  filtered.forEach(c=>{
-    total+=c.balance||0;
-    const row=document.createElement("div");
-    row.className="customer-row";
-    row.innerHTML=`
-      <span style="flex:1">${i++}. ${c.name} - ${c.balance||0} Tk</span>
-      <span class="del-customer">🗑️</span>
-    `;
-    row.onclick=()=>openCustomer(c.id,c.name);
-    row.querySelector(".del-customer").onclick=async e=>{
-      e.stopPropagation();
-      if(confirm("Delete customer?")){
-        await deleteDoc(doc(db,"customers",c.id));
-      }
-    };
-    customerList.appendChild(row);
-  });
+  customers
+    .filter(c=>c.name.toLowerCase().includes(filter.toLowerCase()))
+    .forEach(c=>{
+      total+=c.balance||0;
+      customerList.innerHTML+=`
+      <tr>
+        <td>${i++}</td>
+        <td onclick="openCustomer('${c.id}','${c.name}')" style="cursor:pointer">${c.name}</td>
+        <td>${c.balance||0}</td>
+        <td class="icon edit" onclick="editCustomer('${c.id}','${c.name}')">✏️</td>
+        <td class="icon delete" onclick="deleteCustomer('${c.id}')">🗑️</td>
+        <td class="icon history" onclick="downloadHistory('${c.id}','${c.name}')">📥</td>
+      </tr>`;
+    });
 
-  grandTotalEl.innerText=`Total Due: ${total} Taka`;
+  grandTotal.innerText=`Total Due: ${total} Taka`;
 }
+searchInput.oninput=()=>renderCustomers(searchInput.value);
 
-/* ================= SEARCH ================= */
-searchInput.addEventListener("input",()=>{
-  renderCustomerList(searchInput.value.trim());
-});
-
-/* ================= ADD CUSTOMER ================= */
+/* ===== ADD CUSTOMER ===== */
 addCustomerForm.onsubmit=async e=>{
   e.preventDefault();
-  const nameInput=customerName.value.trim();
-  if(!nameInput) return;
-
-  // Check existing customer (case-insensitive)
-  const exists=customersData.some(c=>c.name.toLowerCase()===nameInput.toLowerCase());
-  if(exists){
-    alert("Customer already exists!");
-    return;
-  }
-
   await addDoc(collection(db,"customers"),{
-    name:nameInput,
+    name:customerName.value.trim(),
     balance:0,
     createdAt:serverTimestamp()
   });
   addCustomerForm.reset();
 };
 
-/* ================= OPEN CUSTOMER ================= */
-function openCustomer(id,name){
+/* ===== CUSTOMER ACTION ===== */
+window.editCustomer=async(id,name)=>{
+  const n=prompt("Edit name",name);
+  if(n) await updateDoc(doc(db,"customers",id),{name:n});
+};
+window.deleteCustomer=async id=>{
+  if(confirm("Delete customer?")){
+    await deleteDoc(doc(db,"customers",id));
+  }
+};
+
+/* ===== OPEN CUSTOMER ===== */
+window.openCustomer=(id,name)=>{
   currentCustomerId=id;
   detailName.innerText=name;
   pageList.style.display="none";
   pageDetail.style.display="block";
-  listenTransactions();
-}
+  listenTx();
+};
 
-/* ================= TRANSACTIONS REALTIME ================= */
-function listenTransactions(){
+/* ===== TRANSACTIONS ===== */
+function listenTx(){
   if(unsubTx)unsubTx();
-
   unsubTx=onSnapshot(
-    query(
-      collection(db,"customers",currentCustomerId,"transactions"),
-      orderBy("createdAt","desc")
-    ),
-    async snap=>{
+    query(collection(db,"customers",currentCustomerId,"transactions"),orderBy("createdAt","desc")),
+    snap=>{
       history.innerHTML="";
       let balance=0;
-      const txs=[];
 
       snap.forEach(d=>{
-        txs.push({id:d.id,...d.data()});
-        balance+=d.data().type==="baki"?d.data().amount:-d.data().amount;
+        const t=d.data();
+        balance+=t.type==="baki"?t.amount:-t.amount;
+        history.innerHTML+=`
+        <tr>
+          <td>${t.date}</td>
+          <td class="${t.type}">${t.type==="baki"?"Due":"Payment"}</td>
+          <td>${t.amount}</td>
+          <td>${t.note||"-"}</td>
+          <td onclick="editTx('${d.id}',${t.amount},'${t.type}','${t.note||""}','${t.date}')">✏️</td>
+          <td onclick="deleteTx('${d.id}')">🗑️</td>
+        </tr>`;
       });
 
       detailBalance.innerText=`Total Due: ${balance} Taka`;
-
-      /* auto clear if zero */
-      if(balance===0 && txs.length){
-        for(const t of txs){
-          await deleteDoc(doc(db,"customers",currentCustomerId,"transactions",t.id));
-        }
-        await updateDoc(doc(db,"customers",currentCustomerId),{balance:0});
-        return;
-      }
-
-      txs.forEach(t=>{
-        history.innerHTML+=`
-          <tr>
-            <td>${t.date}</td>
-            <td class="${t.type}">${t.type==="baki"?"Due":"Payment"}</td>
-            <td>${t.amount}</td>
-            <td>${t.note||"-"}</td>
-            <td class="tx-btn edit" onclick="editTx('${t.id}',${t.amount},'${t.type}','${t.note||""}')">✏️</td>
-            <td class="tx-btn delete" onclick="deleteTx('${t.id}')">🗑️</td>
-          </tr>
-        `;
-      });
-
-      await updateDoc(doc(db,"customers",currentCustomerId),{balance});
+      txTable.style.display = balance===0 ? "none" : "table";
+      updateDoc(doc(db,"customers",currentCustomerId),{balance});
     }
   );
 }
 
-/* ================= ADD / EDIT TX ================= */
+/* ===== ADD / EDIT TX ===== */
 detailForm.onsubmit=async e=>{
   e.preventDefault();
-
   const tx={
     amount:+amount.value,
     type:type.value,
     note:note.value,
-    date:formatDate(),
+    date:date.value?date.value.split("-").reverse().join("-"):todayDMY(),
     createdAt:Date.now()
   };
-
-  const txCol=collection(db,"customers",currentCustomerId,"transactions");
-
+  const col=collection(db,"customers",currentCustomerId,"transactions");
   if(editingTxId){
-    await updateDoc(doc(txCol,editingTxId),tx);
+    await updateDoc(doc(col,editingTxId),tx);
     editingTxId=null;
   }else{
-    await addDoc(txCol,tx);
+    await addDoc(col,tx);
   }
-
   detailForm.reset();
 };
 
-/* ================= EDIT ================= */
-window.editTx=(id,amt,t,n)=>{
+/* ===== EDIT / DELETE TX ===== */
+window.editTx=(id,a,t,n,d)=>{
   editingTxId=id;
-  amount.value=amt;
+  amount.value=a;
   type.value=t;
   note.value=n;
 };
-
-/* ================= DELETE ================= */
 window.deleteTx=async id=>{
   if(confirm("Delete transaction?")){
     await deleteDoc(doc(db,"customers",currentCustomerId,"transactions",id));
   }
 };
 
-/* ================= BACK ================= */
+/* ===== HISTORY DOWNLOAD ===== */
+window.downloadHistory=async(id,name)=>{
+  const snap=await getDocs(
+    query(collection(db,"customers",id,"transactions"),orderBy("createdAt","asc"))
+  );
+  if(snap.empty){alert("No history");return;}
+  let csv="Date,Type,Amount,Note\n";
+  snap.forEach(d=>{
+    const t=d.data();
+    csv+=`${t.date},${t.type},${t.amount},"${t.note||""}"\n`;
+  });
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv]));
+  a.download=`${name}_history.csv`;
+  a.click();
+};
+
+/* ===== BACK ===== */
 window.goBack=()=>{
   pageDetail.style.display="none";
   pageList.style.display="block";
