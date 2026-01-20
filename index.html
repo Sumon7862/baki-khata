@@ -1,402 +1,536 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Baki Khata</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Baki Khata</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- PDF LIB -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <!-- PDF LIB -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
-<style>
-*{box-sizing:border-box;font-family:system-ui,Arial}
-body{background:#0f172a;padding:10px}
-.container{max-width:520px;margin:auto;background:#ffffff;padding:14px;border-radius:16px}
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, Arial
+    }
 
-h1{text-align:center;font-size:22px;color:#0f172a}
-h2,h3{text-align:center;font-size:16px}
+    body {
+      background: #0f172a;
+      padding: 10px
+    }
 
-input,select,button{
-  width:100%;padding:9px;margin:5px 0;
-  border-radius:8px;border:1px solid #cbd5f5;font-size:14px
-}
-button{background:rgb(255, 0, 100);color: white;border:1px solid rgb(255, 0, 100); border-radius: 10px; cursor:pointer}
-button:hover{ opacity: 9;}
+    .container {
+      max-width: 520px;
+      margin: auto;
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 16px
+    }
 
-.back-btn{width:30%;margin-bottom:8px}
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      color: #0f172a
+    }
 
-#grandTotal,#detailBalance{
-  background:white;color:rgb(255, 0, 100); text-align: center; border:1px solid rgb(255, 0, 100);
-  padding:6px 8px;width:60%;border-radius:20px;
-  margin:10px auto;font-weight:500
-}
-#detailName{
-  text-transform:capitalize;
-  background:green;color: white;
-  padding:6px 8px;width:70%;
-  border-radius:10px;
-  margin:10px auto;font-weight:600
-}
+    h2,
+    h3 {
+      text-align: center;
+      font-size: 16px
+    }
 
-/* ===== TABLE ===== */
-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-th,td{border:1px solid #e5e7eb;padding:6px;text-align:center}
-th{background:#f1f5f9;font-weight:600}
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 9px;
+      margin: 5px 0;
+      border-radius: 8px;
+      border: 1px solid #cbd5f5;
+      font-size: 14px
+    }
 
-/* ===== ROW COLORS BY DUE ===== */
-.high-due{background:#FDE8E8; font-weight: 700; color: #B91C1C; border: #FCA5A5;}
-.mid-due{background:#FEF3C7; font-weight: 600; color: #92400E; border: #FCD34D;}
-.low-due{background:#ECFDF3; font-weight: 500; color: #065F46; border: #6EE7B7;}
+    button {
+      background: rgb(255, 0, 100);
+      color: white;
+      border: 1px solid rgb(255, 0, 100);
+      border-radius: 10px;
+      cursor: pointer
+    }
 
-.icon{cursor:pointer;font-size:16px}
-.edit{color:#2563eb}
-.delete{color:#dc2626}
-.history{color:#0f766e}
+    button:hover {
+      opacity: 9;
+    }
 
-/* ===== TRANSACTION ===== */
-.baki{color:#dc2626;font-weight:600}
-.payment{color:#16a34a;font-weight:600}
+    .back-btn {
+      width: 30%;
+      margin-bottom: 8px
+    }
 
-/* ===== LOGIN PAGE ===== */
-#loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
-#loginPage input{width:80%;margin:6px 0;padding:10px;font-size:16px}
-#loginPage button{width:80%;padding:10px;font-size:16px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer}
-#loginPage button:hover{opacity:.9}
-</style>
+    #grandTotal,
+    #detailBalance {
+      background: white;
+      color: rgb(255, 0, 100);
+      text-align: center;
+      border: 1px solid rgb(255, 0, 100);
+      padding: 6px 8px;
+      width: 60%;
+      border-radius: 20px;
+      margin: 10px auto;
+      font-weight: 500
+    }
+
+    #detailName {
+      text-transform: capitalize;
+      background: green;
+      color: white;
+      padding: 6px 8px;
+      width: 70%;
+      border-radius: 10px;
+      margin: 10px auto;
+      font-weight: 600
+    }
+
+    /* ===== TABLE ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px
+    }
+
+    th,
+    td {
+      border: 1px solid #e5e7eb;
+      padding: 6px;
+      text-align: center
+    }
+
+    th {
+      background: #f1f5f9;
+      font-weight: 600
+    }
+
+    /* ===== ROW COLORS BY DUE ===== */
+    .high-due {
+      background: #FDE8E8;
+      font-weight: 700;
+      color: #B91C1C;
+      border: #FCA5A5;
+    }
+
+    .mid-due {
+      background: #FEF3C7;
+      font-weight: 600;
+      color: #92400E;
+      border: #FCD34D;
+    }
+
+    .low-due {
+      background: #ECFDF3;
+      font-weight: 500;
+      color: #065F46;
+      border: #6EE7B7;
+    }
+
+    .icon {
+      cursor: pointer;
+      font-size: 16px
+    }
+
+    .edit {
+      color: #2563eb
+    }
+
+    .delete {
+      color: #dc2626
+    }
+
+    .history {
+      color: #0f766e
+    }
+
+    /* ===== TRANSACTION ===== */
+    .baki {
+      color: #dc2626;
+      font-weight: 600
+    }
+
+    .payment {
+      color: #16a34a;
+      font-weight: 600
+    }
+
+    /* ===== LOGIN PAGE ===== */
+    #loginPage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh
+    }
+
+    #loginPage input {
+      width: 80%;
+      margin: 6px 0;
+      padding: 10px;
+      font-size: 16px
+    }
+
+    #loginPage button {
+      width: 80%;
+      padding: 10px;
+      font-size: 16px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer
+    }
+
+    #loginPage button:hover {
+      opacity: .9
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ===== LOGIN PAGE ===== -->
-<div class="container" id="loginPage">
-<h1>Admin Login</h1>
-<input type="email" id="loginEmail" placeholder="Email" required>
-<input type="password" id="loginPassword" placeholder="Password" required>
-<button id="loginBtn">Login</button>
-<p id="loginError" style="color:red;text-align:center"></p>
-</div>
+  <!-- ===== LOGIN PAGE ===== -->
+  <div class="container" id="loginPage">
+    <h1>Admin Login</h1>
+    <input type="email" id="loginEmail" placeholder="Email" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button id="loginBtn">Login</button>
+    <p id="loginError" style="color:red;text-align:center"></p>
+  </div>
 
-<!-- ================= PAGE 1 ================= -->
-<div class="container" id="page-list" style="display:none">
-<h1>📒 Baki Khata</h1>
-<form id="addCustomerForm">
-<input id="customerName" placeholder="Customer Name" required>
-<button>Add Customer</button>
-</form>
-<input id="search" placeholder="Search Customer">
-<h3 id="grandTotal">Current Due: 0 Taka</h3>
-<table>
-<thead>
-<tr>
-<th>#</th>
-<th>Name</th>
-<th>Balance</th>
-<th>Edit</th>
-<th>Delete</th>
-<th>History</th>
-</tr>
-</thead>
-<tbody id="customerList"></tbody>
-</table>
+  <!-- ================= PAGE 1 ================= -->
+  <div class="container" id="page-list" style="display:none">
+    <h1>📒 Baki Khata</h1>
+    <form id="addCustomerForm">
+      <input id="customerName" placeholder="Customer Name" required>
+      <button>Add Customer</button>
+    </form>
+    <input id="search" placeholder="Search Customer">
+    <h3 id="grandTotal">Current Due: 0 Taka</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Balance</th>
+          <th>Edit</th>
+          <th>Delete</th>
+          <th>History</th>
+        </tr>
+      </thead>
+      <tbody id="customerList"></tbody>
+    </table>
 
-<!-- Global Totals Buttons -->
-<div style="display:flex;gap:8px;margin-top:10px">
-  <div id="totalDueBtn" style="
+    <!-- Global Totals Buttons -->
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <div id="totalDueBtn" style="
     background:white;color:rgb(255,0,100);
     border:1px solid rgb(255,0,100);
     padding:6px 8px;width:50%;
     border-radius:20px;
     font-weight:500;text-align:center">
-    Total Due: 0
-  </div>
+        Total Due: 0
+      </div>
 
-  <div id="totalPaymentBtn" style="
+      <div id="totalPaymentBtn" style="
     background:white;color:rgb(255,0,100);
     border:1px solid rgb(255,0,100);
     padding:6px 8px;width:50%;
     border-radius:20px;
     font-weight:500;text-align:center">
-    Total Payment: 0
+        Total Payment: 0
+      </div>
+    </div>
+
   </div>
-</div>
 
-</div>
+  <!-- ================= PAGE 2 ================= -->
+  <div class="container" id="page-detail" style="display:none">
+    <button class="back-btn" onclick="goBack()">⬅ Back</button>
+    <h2 id="detailName"></h2>
+    <div id="detailBalance"></div>
+    <form id="detailForm">
+      <input type="number" id="amount" placeholder="Amount" required>
+      <select id="type">
+        <option value="baki">Due</option>
+        <option value="payment">Payment</option>
+      </select>
+      <input type="date" id="date">
+      <input id="note" placeholder="Note">
+      <button>Add</button>
+    </form>
+    <table id="txTable" style="display:none">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Note</th>
+          <th>Edit</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody id="history"></tbody>
+    </table>
 
-<!-- ================= PAGE 2 ================= -->
-<div class="container" id="page-detail" style="display:none">
-<button class="back-btn" onclick="goBack()">⬅ Back</button>
-<h2 id="detailName"></h2>
-<div id="detailBalance"></div>
-<form id="detailForm">
-<input type="number" id="amount" placeholder="Amount" required>
-<select id="type">
-  <option value="baki">Due</option>
-  <option value="payment">Payment</option>
-</select>
-<input type="date" id="date">
-<input id="note" placeholder="Note">
-<button>Add</button>
-</form>
-<table id="txTable" style="display:none">
-<thead>
-<tr>
-<th>Date</th>
-<th>Type</th>
-<th>Amount</th>
-<th>Note</th>
-<th>Edit</th>
-<th>Delete</th>
-</tr>
-</thead>
-<tbody id="history"></tbody>
-</table>
-
-<!-- Customer-specific Totals Buttons -->
-<div id="historyTotals" style="display:flex;gap:6px;margin-top:6px">
-  <div id="customerDueBtn" style="
+    <!-- Customer-specific Totals Buttons -->
+    <div id="historyTotals" style="display:flex;gap:6px;margin-top:8px">
+      <div id="customerDueBtn" style="
     background:white;color:rgb(255,0,100);
     border:1px solid rgb(255,0,100);
     padding:6px 8px;width:50%;
     border-radius:20px;
     font-weight:500;text-align:center">
-    Due Added: 0
-  </div>
+        Due Added: 0
+      </div>
 
-  <div id="customerPaymentBtn" style="
+      <div id="customerPaymentBtn" style="
     background:white;color:rgb(255,0,100);
     border:1px solid rgb(255,0,100);
     padding:6px 8px;width:50%;
     border-radius:20px;
     font-weight:500;text-align:center">
-    Payment: 0
+        Payment: 0
+      </div>
+    </div>
   </div>
-</div>
-</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, doc, deleteDoc, updateDoc,
-  onSnapshot, query, orderBy, serverTimestamp, getDocs
-} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-import {
-  getAuth, signInWithEmailAndPassword, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, doc, deleteDoc, updateDoc,
+      onSnapshot, query, orderBy, serverTimestamp, getDocs
+    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+    import {
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-/* ===== FIREBASE ===== */
-const firebaseConfig={
-  apiKey:"AIzaSyDO5I_osPflsq1MrPOY7YJ46iDNJKWlQWE",
-  authDomain:"baki-khata-e0941.firebaseapp.com",
-  projectId:"baki-khata-e0941"
-};
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
-const auth=getAuth(app);
+    /* ===== FIREBASE ===== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDO5I_osPflsq1MrPOY7YJ46iDNJKWlQWE",
+      authDomain: "baki-khata-e0941.firebaseapp.com",
+      projectId: "baki-khata-e0941"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-/* ===== DOM ===== */
-const loginPage=document.getElementById("loginPage");
-const loginBtn=document.getElementById("loginBtn");
-const loginEmail=document.getElementById("loginEmail");
-const loginPassword=document.getElementById("loginPassword");
-const loginError=document.getElementById("loginError");
+    /* ===== DOM ===== */
+    const loginPage = document.getElementById("loginPage");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginEmail = document.getElementById("loginEmail");
+    const loginPassword = document.getElementById("loginPassword");
+    const loginError = document.getElementById("loginError");
 
-const customerList=document.getElementById("customerList");
-const pageList=document.getElementById("page-list");
-const pageDetail=document.getElementById("page-detail");
-const detailName=document.getElementById("detailName");
-const detailBalance=document.getElementById("detailBalance");
-const history=document.getElementById("history");
-const txTable=document.getElementById("txTable");
-const grandTotal=document.getElementById("grandTotal");
-const searchInput=document.getElementById("search");
-const totalDueBtn=document.getElementById("totalDueBtn");
-const totalPaymentBtn=document.getElementById("totalPaymentBtn");
-const customerDueBtn=document.getElementById("customerDueBtn");
-const customerPaymentBtn=document.getElementById("customerPaymentBtn");
+    const customerList = document.getElementById("customerList");
+    const pageList = document.getElementById("page-list");
+    const pageDetail = document.getElementById("page-detail");
+    const detailName = document.getElementById("detailName");
+    const detailBalance = document.getElementById("detailBalance");
+    const history = document.getElementById("history");
+    const txTable = document.getElementById("txTable");
+    const grandTotal = document.getElementById("grandTotal");
+    const searchInput = document.getElementById("search");
+    const totalDueBtn = document.getElementById("totalDueBtn");
+    const totalPaymentBtn = document.getElementById("totalPaymentBtn");
+    const customerDueBtn = document.getElementById("customerDueBtn");
+    const customerPaymentBtn = document.getElementById("customerPaymentBtn");
 
-let customers=[];
-let currentCustomerId=null;
-let editingTxId=null;
-let unsubTx=null;
+    let customers = [];
+    let currentCustomerId = null;
+    let editingTxId = null;
+    let unsubTx = null;
 
-/* ===== LOGIN SYSTEM ===== */
-loginBtn.onclick=()=>{
-  const email=loginEmail.value.trim();
-  const password=loginPassword.value.trim();
-  loginError.innerText="";
-  signInWithEmailAndPassword(auth,email,password)
-  .then(()=>{ loginPage.style.display="none"; pageList.style.display="block"; })
-  .catch(err=>{ loginError.innerText="Invalid email or password"; });
-};
+    /* ===== LOGIN SYSTEM ===== */
+    loginBtn.onclick = () => {
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value.trim();
+      loginError.innerText = "";
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => { loginPage.style.display = "none"; pageList.style.display = "block"; })
+        .catch(err => { loginError.innerText = "Invalid email or password"; });
+    };
 
-onAuthStateChanged(auth,user=>{
-  if(user){ loginPage.style.display="none"; pageList.style.display="block"; }
-  else{ loginPage.style.display="flex"; pageList.style.display="none"; pageDetail.style.display="none"; }
-});
-
-/* ===== UTILS ===== */
-const todayDMY=()=>{ const d=new Date(); return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`; };
-
-/* ===== PAGE 1 REALTIME ===== */
-onSnapshot(collection(db,"customers"),snap=>{
-  customers=[]; snap.forEach(d=>customers.push({id:d.id,...d.data()}));
-  renderCustomers(searchInput.value);
-});
-
-/* ===== CALCULATE GLOBAL TOTALS ===== */
-async function calculateGlobalTotals(){
-  let totalDue=0, totalPayment=0;
-  for(const c of customers){
-    const snap=await getDocs(collection(db,"customers",c.id,"transactions"));
-    snap.forEach(d=>{
-      const t=d.data();
-      if(t.type==="baki") totalDue+=t.amount;
-      else totalPayment+=t.amount;
+    onAuthStateChanged(auth, user => {
+      if (user) { loginPage.style.display = "none"; pageList.style.display = "block"; }
+      else { loginPage.style.display = "flex"; pageList.style.display = "none"; pageDetail.style.display = "none"; }
     });
-  }
-  totalDueBtn.innerText=`Total Due: ${totalDue}`;
-  totalPaymentBtn.innerText=`Total Payment: ${totalPayment}`;
-}
 
-/* ===== RENDER CUSTOMERS ===== */
-function renderCustomers(filter=""){
-  customerList.innerHTML="";
-  let total=0, i=1;
-  customers
-    .filter(c=>c.name.toLowerCase().includes(filter.toLowerCase()))
-    .sort((a,b)=>(b.balance||0)-(a.balance||0))
-    .forEach(c=>{
-      total+=c.balance||0;
-      let cls="low-due";
-      if(c.balance>=1000) cls="high-due";
-      else if(c.balance>=500) cls="mid-due";
-      customerList.innerHTML+=`
+    /* ===== UTILS ===== */
+    const todayDMY = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`; };
+
+    /* ===== PAGE 1 REALTIME ===== */
+    onSnapshot(collection(db, "customers"), snap => {
+      customers = []; snap.forEach(d => customers.push({ id: d.id, ...d.data() }));
+      renderCustomers(searchInput.value);
+    });
+
+    /* ===== CALCULATE GLOBAL TOTALS ===== */
+    async function calculateGlobalTotals() {
+      let totalDue = 0, totalPayment = 0;
+      for (const c of customers) {
+        const snap = await getDocs(collection(db, "customers", c.id, "transactions"));
+        snap.forEach(d => {
+          const t = d.data();
+          if (t.type === "baki") totalDue += t.amount;
+          else totalPayment += t.amount;
+        });
+      }
+      totalDueBtn.innerText = `Total Due: ${totalDue}`;
+      totalPaymentBtn.innerText = `Total Payment: ${totalPayment}`;
+    }
+
+    /* ===== RENDER CUSTOMERS ===== */
+    function renderCustomers(filter = "") {
+      customerList.innerHTML = "";
+      let total = 0, i = 1;
+      customers
+        .filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
+        .sort((a, b) => (b.balance || 0) - (a.balance || 0))
+        .forEach(c => {
+          total += c.balance || 0;
+          let cls = "low-due";
+          if (c.balance >= 1000) cls = "high-due";
+          else if (c.balance >= 500) cls = "mid-due";
+          customerList.innerHTML += `
       <tr class="${cls}">
         <td>${i++}</td>
         <td onclick="openCustomer('${c.id}','${c.name}')" style="cursor:pointer">${c.name}</td>
-        <td>${c.balance||0}</td>
+        <td>${c.balance || 0}</td>
         <td class="icon edit" onclick="editCustomer('${c.id}','${c.name}')">✏️</td>
         <td class="icon delete" onclick="deleteCustomer('${c.id}')">🗑️</td>
         <td class="icon history" onclick="downloadHistory('${c.id}','${c.name}')">📄</td>
       </tr>`;
-    });
-  grandTotal.innerText=`Total Due: ${total} Taka`;
-  calculateGlobalTotals();
-}
-searchInput.oninput=()=>renderCustomers(searchInput.value);
+        });
+      grandTotal.innerText = `Total Due: ${total} Taka`;
+      calculateGlobalTotals();
+    }
+    searchInput.oninput = () => renderCustomers(searchInput.value);
 
-/* ===== ADD CUSTOMER ===== */
-addCustomerForm.onsubmit=async e=>{
-  e.preventDefault();
-  const name=customerName.value.trim();
-  if(customers.some(c=>c.name.toLowerCase()===name.toLowerCase())){
-    alert("Customer already exists");
-    return;
-  }
-  await addDoc(collection(db,"customers"),{ name,balance:0,createdAt:serverTimestamp() });
-  addCustomerForm.reset();
-};
+    /* ===== ADD CUSTOMER ===== */
+    addCustomerForm.onsubmit = async e => {
+      e.preventDefault();
+      const name = customerName.value.trim();
+      if (customers.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert("Customer already exists");
+        return;
+      }
+      await addDoc(collection(db, "customers"), { name, balance: 0, createdAt: serverTimestamp() });
+      addCustomerForm.reset();
+    };
 
-/* ===== CUSTOMER ACTION ===== */
-window.editCustomer=async(id,name)=>{ const n=prompt("Edit name",name); if(n) await updateDoc(doc(db,"customers",id),{name:n}); };
-window.deleteCustomer=async id=>{ if(confirm("Delete customer?")) await deleteDoc(doc(db,"customers",id)); };
+    /* ===== CUSTOMER ACTION ===== */
+    window.editCustomer = async (id, name) => { const n = prompt("Edit name", name); if (n) await updateDoc(doc(db, "customers", id), { name: n }); };
+    window.deleteCustomer = async id => { if (confirm("Delete customer?")) await deleteDoc(doc(db, "customers", id)); };
 
-/* ===== OPEN CUSTOMER ===== */
-window.openCustomer=(id,name)=>{
-  currentCustomerId=id;
-  detailName.innerText=name;
-  pageList.style.display="none";
-  pageDetail.style.display="block";
-  listenTx();
-};
+    /* ===== OPEN CUSTOMER ===== */
+    window.openCustomer = (id, name) => {
+      currentCustomerId = id;
+      detailName.innerText = name;
+      pageList.style.display = "none";
+      pageDetail.style.display = "block";
+      listenTx();
+    };
 
-/* ===== TRANSACTIONS ===== */
-function listenTx(){
-  if(unsubTx)unsubTx();
-  unsubTx=onSnapshot(
-    query(collection(db,"customers",currentCustomerId,"transactions"),orderBy("createdAt","desc")),
-    snap=>{
-      history.innerHTML="";
-      let balance=0, totalDue=0, totalPayment=0;
-      snap.forEach(d=>{
-        const t=d.data();
-        if(t.type==="baki"){ balance+=t.amount; totalDue+=t.amount; }
-        else{ balance-=t.amount; totalPayment+=t.amount; }
+    /* ===== TRANSACTIONS ===== */
+    function listenTx() {
+      if (unsubTx) unsubTx();
+      unsubTx = onSnapshot(
+        query(collection(db, "customers", currentCustomerId, "transactions"), orderBy("createdAt", "desc")),
+        snap => {
+          history.innerHTML = "";
+          let balance = 0, totalDue = 0, totalPayment = 0;
+          snap.forEach(d => {
+            const t = d.data();
+            if (t.type === "baki") { balance += t.amount; totalDue += t.amount; }
+            else { balance -= t.amount; totalPayment += t.amount; }
 
-        history.innerHTML+=`
+            history.innerHTML += `
         <tr>
           <td>${t.date}</td>
-          <td class="${t.type}">${t.type==="baki"?"Due":"Payment"}</td>
+          <td class="${t.type}">${t.type === "baki" ? "Due" : "Payment"}</td>
           <td>${t.amount}</td>
-          <td>${t.note||"-"}</td>
-          <td onclick="editTx('${d.id}',${t.amount},'${t.type}','${t.note||""}')">✏️</td>
+          <td>${t.note || "-"}</td>
+          <td onclick="editTx('${d.id}',${t.amount},'${t.type}','${t.note || ""}')">✏️</td>
           <td onclick="deleteTx('${d.id}')">🗑️</td>
         </tr>`;
+          });
+
+          detailBalance.innerText = `Current Due: ${balance} Taka`;
+
+          // ✅ Update history page totals buttons
+          customerDueBtn.innerText = `Total Due: ${totalDue}`;
+          customerPaymentBtn.innerText = `Total Payment: ${totalPayment}`;
+
+          txTable.style.display = balance === 0 ? "none" : "table";
+          updateDoc(doc(db, "customers", currentCustomerId), { balance });
+        }
+      );
+    }
+
+    /* ===== ADD / EDIT TX ===== */
+    detailForm.onsubmit = async e => {
+      e.preventDefault();
+      const tx = {
+        amount: +amount.value, type: type.value, note: note.value,
+        date: date.value ? date.value.split("-").reverse().join("-") : todayDMY(),
+        createdAt: Date.now()
+      };
+      const col = collection(db, "customers", currentCustomerId, "transactions");
+      if (editingTxId) { await updateDoc(doc(col, editingTxId), tx); editingTxId = null; }
+      else { await addDoc(col, tx); }
+      detailForm.reset();
+    };
+
+    window.editTx = (id, a, t, n) => { editingTxId = id; amount.value = a; type.value = t; note.value = n; };
+    window.deleteTx = async id => { if (confirm("Delete transaction?")) await deleteDoc(doc(db, "customers", currentCustomerId, "transactions", id)); };
+
+    /* ===== PDF HISTORY DOWNLOAD ===== */
+    window.downloadHistory = async (id, name) => {
+      const q = query(collection(db, "customers", id, "transactions"), orderBy("createdAt", "asc"));
+      const snap = await getDocs(q);
+
+      if (snap.empty) { alert("No history"); return; }
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(16);
+      pdf.text(name, 105, 15, { align: "center" });
+
+      const rows = [];
+      snap.forEach(d => {
+        const t = d.data();
+        rows.push([
+          t.date,
+          t.type === "baki" ? "Due" : "Payment",
+          t.amount,
+          t.note || "-"
+        ]);
       });
 
-      detailBalance.innerText=`Total Due: ${balance} Taka`;
+      pdf.autoTable({
+        head: [["Date", "Type", "Amount", "Note"]],
+        body: rows,
+        startY: 25
+      });
 
-      // ✅ Update history page totals buttons
-      customerDueBtn.innerText=`Due Added: ${totalDue}`;
-      customerPaymentBtn.innerText=`Payment: ${totalPayment}`;
+      pdf.save(`${name}_history.pdf`);
+    };
 
-      txTable.style.display = balance===0 ? "none" : "table";
-      updateDoc(doc(db,"customers",currentCustomerId),{balance});
-    }
-  );
-}
-
-/* ===== ADD / EDIT TX ===== */
-detailForm.onsubmit=async e=>{
-  e.preventDefault();
-  const tx={ amount:+amount.value, type:type.value, note:note.value,
-    date:date.value?date.value.split("-").reverse().join("-"):todayDMY(),
-    createdAt:Date.now() };
-  const col=collection(db,"customers",currentCustomerId,"transactions");
-  if(editingTxId){ await updateDoc(doc(col,editingTxId),tx); editingTxId=null; }
-  else{ await addDoc(col,tx); }
-  detailForm.reset();
-};
-
-window.editTx=(id,a,t,n)=>{ editingTxId=id; amount.value=a; type.value=t; note.value=n; };
-window.deleteTx=async id=>{ if(confirm("Delete transaction?")) await deleteDoc(doc(db,"customers",currentCustomerId,"transactions",id)); };
-
-/* ===== PDF HISTORY DOWNLOAD ===== */
-window.downloadHistory=async(id,name)=>{
-  const q=query(collection(db,"customers",id,"transactions"),orderBy("createdAt","asc"));
-  const snap=await getDocs(q);
-
-  if(snap.empty){ alert("No history"); return; }
-
-  const { jsPDF } = window.jspdf;
-  const pdf=new jsPDF();
-
-  pdf.setFont("helvetica","bold");
-  pdf.setFontSize(16);
-  pdf.text(name,105,15,{align:"center"});
-
-  const rows=[];
-  snap.forEach(d=>{
-    const t=d.data();
-    rows.push([
-      t.date,
-      t.type==="baki"?"Due":"Payment",
-      t.amount,
-      t.note||"-"
-    ]);
-  });
-
-  pdf.autoTable({
-    head:[["Date","Type","Amount","Note"]],
-    body:rows,
-    startY:25
-  });
-
-  pdf.save(`${name}_history.pdf`);
-};
-
-/* ===== BACK ===== */
-window.goBack=()=>{ pageDetail.style.display="none"; pageList.style.display="block"; if(unsubTx)unsubTx(); };
-</script>
+    /* ===== BACK ===== */
+    window.goBack = () => { pageDetail.style.display = "none"; pageList.style.display = "block"; if (unsubTx) unsubTx(); };
+  </script>
 </body>
+
 </html>
