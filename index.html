@@ -56,7 +56,7 @@
       background: rgb(255, 0, 100);
       color: white;
       border: 1px solid rgb(255, 0, 100);
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer
     }
 
@@ -77,7 +77,7 @@
       border: 1px solid rgb(255, 0, 100);
       padding: 6px 8px;
       width: 60%;
-      border-radius: 20px;
+      border-radius: 8px;
       margin: 10px auto;
       font-weight: 500
     }
@@ -88,7 +88,7 @@
       color: white;
       padding: 6px 8px;
       width: 70%;
-      border-radius: 10px;
+      border-radius: 8px;
       margin: 10px auto;
       font-weight: 600
     }
@@ -216,39 +216,31 @@
     </form>
     <input id="search" placeholder="Search Customer">
     <h3 id="grandTotal">Current Due: 0 Taka</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Balance</th>
-          <th>Edit</th>
-          <th>Delete</th>
-          <th>History</th>
-        </tr>
-      </thead>
-      <tbody id="customerList"></tbody>
-    </table>
-
-    <!-- Global Totals Buttons -->
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <div id="totalDueBtn" style="
-    background:white;color:rgb(255,0,100);
-    border:1px solid rgb(255,0,100);
-    padding:6px 8px;width:50%;
-    border-radius:20px;
-    font-weight:500;text-align:center">
-        Total Due: 0
+    <div>
+      <!-- Global Totals Buttons -->
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <div id="totalDueBtn"
+          style="background:rgb(255,0,100); color:white; padding: 6px 8px; width:50%; border-radius: 8px; font-size: 14px; font-weight: 500; text-align: center">
+          Total Due: 0
+        </div>
+        <div id="totalPaymentBtn"
+          style="background:rgb(255,0,100); color:white; padding: 6px 8px; width:50%; border-radius: 8px; font-size: 14px; font-weight: 500; text-align: center">
+          Total Payment: 0
+        </div>
       </div>
-
-      <div id="totalPaymentBtn" style="
-    background:white;color:rgb(255,0,100);
-    border:1px solid rgb(255,0,100);
-    padding:6px 8px;width:50%;
-    border-radius:20px;
-    font-weight:500;text-align:center">
-        Total Payment: 0
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Balance</th>
+            <th>Edit</th>
+            <th>Delete</th>
+            <th>History</th>
+          </tr>
+        </thead>
+        <tbody id="customerList"></tbody>
+      </table>
     </div>
 
   </div>
@@ -258,6 +250,17 @@
     <button class="back-btn" onclick="goBack()">⬅ Back</button>
     <h2 id="detailName"></h2>
     <div id="detailBalance"></div>
+    <!-- Customer-specific Totals Buttons -->
+    <div id="historyTotals" style="display:flex;gap:6px;margin-top:8px">
+      <div id="customerDueBtn"
+        style="background:rgb(255,0,100); color:white; padding: 6px 8px; width:50%; border-radius: 8px; font-size: 14px; font-weight: 500; text-align: center">
+        Due Added: 0
+      </div>
+      <div id="customerPaymentBtn"
+        style="background:rgb(255,0,100); color:white; padding: 6px 8px; width:50%; border-radius: 8px; font-size: 14px; font-weight: 500; text-align: center">
+        Payment: 0
+      </div>
+    </div>
     <form id="detailForm">
       <input type="number" id="amount" placeholder="Amount" required>
       <select id="type">
@@ -281,27 +284,6 @@
       </thead>
       <tbody id="history"></tbody>
     </table>
-
-    <!-- Customer-specific Totals Buttons -->
-    <div id="historyTotals" style="display:flex;gap:6px;margin-top:8px">
-      <div id="customerDueBtn" style="
-    background:white;color:rgb(255,0,100);
-    border:1px solid rgb(255,0,100);
-    padding:6px 8px;width:50%;
-    border-radius:20px;
-    font-weight:500;text-align:center">
-        Due Added: 0
-      </div>
-
-      <div id="customerPaymentBtn" style="
-    background:white;color:rgb(255,0,100);
-    border:1px solid rgb(255,0,100);
-    padding:6px 8px;width:50%;
-    border-radius:20px;
-    font-weight:500;text-align:center">
-        Payment: 0
-      </div>
-    </div>
   </div>
 
   <script type="module">
@@ -411,7 +393,7 @@
         <td class="icon history" onclick="downloadHistory('${c.id}','${c.name}')">📄</td>
       </tr>`;
         });
-      grandTotal.innerText = `Total Due: ${total} Taka`;
+      grandTotal.innerText = `Current Due: ${total} Taka`;
       calculateGlobalTotals();
     }
     searchInput.oninput = () => renderCustomers(searchInput.value);
