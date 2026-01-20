@@ -98,13 +98,35 @@ th{background:#f1f5f9;font-weight:600}
 </thead>
 <tbody id="customerList"></tbody>
 </table>
+
+<!-- Global Totals Buttons -->
+<div style="display:flex;gap:8px;margin-top:10px">
+  <div id="totalDueBtn" style="
+    background:white;color:rgb(255,0,100);
+    border:1px solid rgb(255,0,100);
+    padding:6px 8px;width:50%;
+    border-radius:20px;
+    font-weight:500;text-align:center">
+    Total Due: 0
+  </div>
+
+  <div id="totalPaymentBtn" style="
+    background:white;color:rgb(255,0,100);
+    border:1px solid rgb(255,0,100);
+    padding:6px 8px;width:50%;
+    border-radius:20px;
+    font-weight:500;text-align:center">
+    Total Payment: 0
+  </div>
+</div>
+
 </div>
 
 <!-- ================= PAGE 2 ================= -->
 <div class="container" id="page-detail" style="display:none">
 <button class="back-btn" onclick="goBack()">⬅ Back</button>
 <h2 id="detailName"></h2>
-<h3 id="detailBalance"></h3>
+<div id="detailBalance"></div>
 <form id="detailForm">
 <input type="number" id="amount" placeholder="Amount" required>
 <select id="type">
@@ -166,6 +188,8 @@ const history=document.getElementById("history");
 const txTable=document.getElementById("txTable");
 const grandTotal=document.getElementById("grandTotal");
 const searchInput=document.getElementById("search");
+const totalDueBtn=document.getElementById("totalDueBtn");
+const totalPaymentBtn=document.getElementById("totalPaymentBtn");
 
 let customers=[];
 let currentCustomerId=null;
@@ -196,6 +220,21 @@ onSnapshot(collection(db,"customers"),snap=>{
   renderCustomers(searchInput.value);
 });
 
+/* ===== CALCULATE GLOBAL TOTALS ===== */
+async function calculateGlobalTotals(){
+  let totalDue=0, totalPayment=0;
+  for(const c of customers){
+    const snap=await getDocs(collection(db,"customers",c.id,"transactions"));
+    snap.forEach(d=>{
+      const t=d.data();
+      if(t.type==="baki") totalDue+=t.amount;
+      else totalPayment+=t.amount;
+    });
+  }
+  totalDueBtn.innerText=`Total Due: ${totalDue}`;
+  totalPaymentBtn.innerText=`Total Payment: ${totalPayment}`;
+}
+
 /* ===== RENDER CUSTOMERS ===== */
 function renderCustomers(filter=""){
   customerList.innerHTML="";
@@ -219,6 +258,7 @@ function renderCustomers(filter=""){
       </tr>`;
     });
   grandTotal.innerText=`Total Due: ${total} Taka`;
+  calculateGlobalTotals();
 }
 searchInput.oninput=()=>renderCustomers(searchInput.value);
 
@@ -239,7 +279,13 @@ window.editCustomer=async(id,name)=>{ const n=prompt("Edit name",name); if(n) aw
 window.deleteCustomer=async id=>{ if(confirm("Delete customer?")) await deleteDoc(doc(db,"customers",id)); };
 
 /* ===== OPEN CUSTOMER ===== */
-window.openCustomer=(id,name)=>{ currentCustomerId=id; detailName.innerText=name; pageList.style.display="none"; pageDetail.style.display="block"; listenTx(); };
+window.openCustomer=(id,name)=>{
+  currentCustomerId=id;
+  detailName.innerText=name;
+  pageList.style.display="none";
+  pageDetail.style.display="block";
+  listenTx();
+};
 
 /* ===== TRANSACTIONS ===== */
 function listenTx(){
@@ -247,10 +293,13 @@ function listenTx(){
   unsubTx=onSnapshot(
     query(collection(db,"customers",currentCustomerId,"transactions"),orderBy("createdAt","desc")),
     snap=>{
-      history.innerHTML=""; let balance=0;
+      history.innerHTML="";
+      let balance=0, totalDue=0, totalPayment=0;
       snap.forEach(d=>{
         const t=d.data();
-        balance+=t.type==="baki"?t.amount:-t.amount;
+        if(t.type==="baki"){ balance+=t.amount; totalDue+=t.amount; }
+        else{ balance-=t.amount; totalPayment+=t.amount; }
+
         history.innerHTML+=`
         <tr>
           <td>${t.date}</td>
@@ -261,7 +310,23 @@ function listenTx(){
           <td onclick="deleteTx('${d.id}')">🗑️</td>
         </tr>`;
       });
-      detailBalance.innerText=`Total Due: ${balance} Taka`;
+      detailBalance.innerHTML=`
+      <div id="detailBalance">
+        Total Due: ${balance}
+      </div>
+      <div style="display:flex;gap:6px">
+        <div style="background:white;color:rgb(255,0,100);
+          border:1px solid rgb(255,0,100);
+          padding:6px;width:50%;border-radius:20px;text-align:center">
+          Due Added: ${totalDue}
+        </div>
+        <div style="background:white;color:rgb(255,0,100);
+          border:1px solid rgb(255,0,100);
+          padding:6px;width:50%;border-radius:20px;text-align:center">
+          Payment: ${totalPayment}
+        </div>
+      </div>
+      `;
       txTable.style.display = balance===0 ? "none" : "table";
       updateDoc(doc(db,"customers",currentCustomerId),{balance});
     }
@@ -284,49 +349,41 @@ window.editTx=(id,a,t,n)=>{ editingTxId=id; amount.value=a; type.value=t; note.v
 window.deleteTx=async id=>{ if(confirm("Delete transaction?")) await deleteDoc(doc(db,"customers",currentCustomerId,"transactions",id)); };
 
 /* ===== PDF HISTORY DOWNLOAD ===== */
-window.downloadHistory = async (id, name) => {
-  const snap = await getDocs(
-    query(
-      collection(db, "customers", id, "transactions"),
-      orderBy("createdAt", "asc")
-    )
+window.downloadHistory=async(id,name)=>{
+  const q=query(
+    collection(db,"customers",id,"transactions"),
+    orderBy("createdAt","asc")
   );
+  const snap=await getDocs(q);
 
-  if (snap.empty) {
-    alert("No history");
-    return;
-  }
+  if(snap.empty){ alert("No history"); return; }
 
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
+  const pdf=new jsPDF();
 
-  /* ===== CUSTOMER NAME (CENTER + BOLD) ===== */
-  pdf.setFont("helvetica", "bold");   // bold
-  pdf.setFontSize(16);                // font size
-  pdf.setTextColor(0, 0, 0);          // black
-  pdf.text(name, 105, 15, { align: "center" }); // center (A4 width / 2)
+  pdf.setFont("helvetica","bold");
+  pdf.setFontSize(16);
+  pdf.text(name,105,15,{align:"center"});
 
-  /* ===== TABLE DATA ===== */
-  const rows = [];
-  snap.forEach(d => {
-    const t = d.data();
+  const rows=[];
+  snap.forEach(d=>{
+    const t=d.data();
     rows.push([
       t.date,
-      t.type === "baki" ? "Due" : "Payment",
+      t.type==="baki"?"Due":"Payment",
       t.amount,
-      t.note || "-"
+      t.note||"-"
     ]);
   });
 
   pdf.autoTable({
-    head: [["Date", "Type", "Amount", "Note"]],
-    body: rows,
-    startY: 25
+    head:[["Date","Type","Amount","Note"]],
+    body:rows,
+    startY:25
   });
 
   pdf.save(`${name}_history.pdf`);
 };
-
 
 /* ===== BACK ===== */
 window.goBack=()=>{ pageDetail.style.display="none"; pageList.style.display="block"; if(unsubTx)unsubTx(); };
