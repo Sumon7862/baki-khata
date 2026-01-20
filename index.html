@@ -27,7 +27,7 @@ button:hover{ opacity: 9;}
 .back-btn{width:30%;margin-bottom:8px}
 
 #grandTotal,#detailBalance{
-  background:white;color:rgb(255, 0, 100); border:1px solid rgb(255, 0, 100);
+  background:white;color:rgb(255, 0, 100); text-align: center; border:1px solid rgb(255, 0, 100);
   padding:6px 8px;width:60%;border-radius:20px;
   margin:10px auto;font-weight:500
 }
@@ -150,6 +150,27 @@ th{background:#f1f5f9;font-weight:600}
 </thead>
 <tbody id="history"></tbody>
 </table>
+
+<!-- Customer-specific Totals Buttons -->
+<div id="historyTotals" style="display:flex;gap:6px;margin-top:6px">
+  <div id="customerDueBtn" style="
+    background:white;color:rgb(255,0,100);
+    border:1px solid rgb(255,0,100);
+    padding:6px 8px;width:50%;
+    border-radius:20px;
+    font-weight:500;text-align:center">
+    Due Added: 0
+  </div>
+
+  <div id="customerPaymentBtn" style="
+    background:white;color:rgb(255,0,100);
+    border:1px solid rgb(255,0,100);
+    padding:6px 8px;width:50%;
+    border-radius:20px;
+    font-weight:500;text-align:center">
+    Payment: 0
+  </div>
+</div>
 </div>
 
 <script type="module">
@@ -190,6 +211,8 @@ const grandTotal=document.getElementById("grandTotal");
 const searchInput=document.getElementById("search");
 const totalDueBtn=document.getElementById("totalDueBtn");
 const totalPaymentBtn=document.getElementById("totalPaymentBtn");
+const customerDueBtn=document.getElementById("customerDueBtn");
+const customerPaymentBtn=document.getElementById("customerPaymentBtn");
 
 let customers=[];
 let currentCustomerId=null;
@@ -310,23 +333,13 @@ function listenTx(){
           <td onclick="deleteTx('${d.id}')">🗑️</td>
         </tr>`;
       });
-      detailBalance.innerHTML=`
-      <div id="detailBalance">
-        Total Due: ${balance}
-      </div>
-      <div style="display:flex;gap:6px">
-        <div style="background:white;color:rgb(255,0,100);
-          border:1px solid rgb(255,0,100);
-          padding:6px;width:50%;border-radius:20px;text-align:center">
-          Due Added: ${totalDue}
-        </div>
-        <div style="background:white;color:rgb(255,0,100);
-          border:1px solid rgb(255,0,100);
-          padding:6px;width:50%;border-radius:20px;text-align:center">
-          Payment: ${totalPayment}
-        </div>
-      </div>
-      `;
+
+      detailBalance.innerText=`Total Due: ${balance} Taka`;
+
+      // ✅ Update history page totals buttons
+      customerDueBtn.innerText=`Due Added: ${totalDue}`;
+      customerPaymentBtn.innerText=`Payment: ${totalPayment}`;
+
       txTable.style.display = balance===0 ? "none" : "table";
       updateDoc(doc(db,"customers",currentCustomerId),{balance});
     }
@@ -350,10 +363,7 @@ window.deleteTx=async id=>{ if(confirm("Delete transaction?")) await deleteDoc(d
 
 /* ===== PDF HISTORY DOWNLOAD ===== */
 window.downloadHistory=async(id,name)=>{
-  const q=query(
-    collection(db,"customers",id,"transactions"),
-    orderBy("createdAt","asc")
-  );
+  const q=query(collection(db,"customers",id,"transactions"),orderBy("createdAt","asc"));
   const snap=await getDocs(q);
 
   if(snap.empty){ alert("No history"); return; }
