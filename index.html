@@ -11,78 +11,189 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-*{box-sizing:border-box;font-family:system-ui,Arial;margin:0;padding:0}
-body{background:#0f172a;padding:10px}
-.container{max-width:520px;margin:auto;background:#ffffff;padding:14px;border-radius:16px}
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, Arial
+    }
 
-/* ===== HEADINGS ===== */
-h1{text-align:center;font-size:22px;color:#0f172a;margin-bottom:10px}
-h2,h3{text-align:center;font-size:16px;margin-bottom:10px}
+    body {
+      background: #0f172a;
+      padding: 10px
+    }
 
-/* ===== INPUTS & BUTTONS ===== */
-input,select,button{
-  width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #cbd5f5;font-size:14px
-}
-button{background:rgb(255, 0, 100);color:white;border:1px solid rgb(255,0,100);cursor:pointer}
-button:hover{opacity:.9}
+    .container {
+      max-width: 520px;
+      margin: auto;
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 16px
+    }
 
-/* ===== BACK BUTTON ===== */
-.back-btn{width:30%;margin-bottom:8px}
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      color: #0f172a
+    }
 
-/* ===== GLOBAL & DETAIL TOTALS ===== */
-#grandTotal,#detailBalance,#totalDueBtn,#totalPaymentBtn,#customerDueBtn,#customerPaymentBtn{
-  text-align:center;
-  padding:6px 8px;
-  border-radius:10px;
-  margin:6px auto;
-  font-weight:500;
-}
-#grandTotal,#detailBalance{background:white;color:rgb(255,0,100);border:1px solid rgb(255,0,100)}
-#totalDueBtn,#totalPaymentBtn,#customerDueBtn,#customerPaymentBtn{background:rgb(255,0,100);color:white}
+    h2,
+    h3 {
+      text-align: center;
+      font-size: 16px
+    }
 
-/* ===== DETAIL NAME ===== */
-#detailName{background:green;color:white;padding:6px 8px;width:70%;border-radius:8px;margin:10px auto;font-weight:600;text-transform:capitalize}
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 9px;
+      margin: 5px 0;
+      border-radius: 8px;
+      border: 1px solid #cbd5f5;
+      font-size: 14px
+    }
 
-/* ===== TABLE ===== */
-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;overflow-x:auto;display:block}
-th,td{border:1px solid #e5e7eb;padding:6px;text-align:center}
-th{background:#f1f5f9;font-weight:600}
+    button {
+      background: rgb(255, 0, 100);
+      color: white;
+      border: 1px solid rgb(255, 0, 100);
+      border-radius: 8px;
+      cursor: pointer
+    }
 
-/* ===== ROW COLORS BY DUE ===== */
-.high-due{background:#FDE8E8;font-weight:700;color:#B91C1C}
-.mid-due{background:#FEF3C7;font-weight:600;color:#92400E}
-.low-due{background:#ECFDF3;font-weight:500;color:#065F46}
+    button:hover {
+      opacity: 9;
+    }
 
-/* ===== ICONS ===== */
-.icon{cursor:pointer;font-size:16px}
-.edit{color:#2563eb}
-.delete{color:#dc2626}
-.history{color:#0f766e}
+    .back-btn {
+      width: 30%;
+      margin-bottom: 8px
+    }
 
-/* ===== TRANSACTION ===== */
-.baki{color:#dc2626;font-weight:600}
-.payment{color:#16a34a;font-weight:600}
+    #grandTotal,
+    #detailBalance {
+      background: white;
+      color: rgb(255, 0, 100);
+      text-align: center;
+      border: 1px solid rgb(255, 0, 100);
+      padding: 6px 8px;
+      width: 60%;
+      border-radius: 8px;
+      margin: 10px auto;
+      font-weight: 500
+    }
 
-/* ===== LOGIN PAGE ===== */
-#loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
-#loginPage input,#loginPage button{width:80%;margin:6px 0;padding:10px;font-size:16px}
-#loginPage button{background:#2563eb;color:#fff;border:none;border-radius:8px}
-#loginPage button:hover{opacity:.9}
+    #detailName {
+      text-transform: capitalize;
+      background: green;
+      color: white;
+      padding: 6px 8px;
+      width: 70%;
+      border-radius: 8px;
+      margin: 10px auto;
+      font-weight: 600
+    }
 
-/* ===== MOBILE RESPONSIVE ===== */
-@media (max-width:480px){
-  .container{padding:10px;border-radius:12px}
-  #detailName,#grandTotal,#detailBalance,#totalDueBtn,#totalPaymentBtn,#customerDueBtn,#customerPaymentBtn{
-    width:100%;font-size:13px;padding:5px
-  }
-  input,select,button{font-size:13px;padding:8px}
-  table,thead,tbody,tr,th,td{display:block}
-  table{overflow-x:auto;font-size:12px}
-  tr{display:table-row;margin-bottom:5px}
-  th,td{border:1px solid #e5e7eb;padding:4px;text-align:center}
-  .back-btn{width:40%}
-}
-</style>
+    /* ===== TABLE ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px
+    }
+
+    th,
+    td {
+      border: 1px solid #e5e7eb;
+      padding: 6px;
+      text-align: center
+    }
+
+    th {
+      background: #f1f5f9;
+      font-weight: 600
+    }
+
+    /* ===== ROW COLORS BY DUE ===== */
+    .high-due {
+      background: #FDE8E8;
+      font-weight: 700;
+      color: #B91C1C;
+      border: #FCA5A5;
+    }
+
+    .mid-due {
+      background: #FEF3C7;
+      font-weight: 600;
+      color: #92400E;
+      border: #FCD34D;
+    }
+
+    .low-due {
+      background: #ECFDF3;
+      font-weight: 500;
+      color: #065F46;
+      border: #6EE7B7;
+    }
+
+    .icon {
+      cursor: pointer;
+      font-size: 16px
+    }
+
+    .edit {
+      color: #2563eb
+    }
+
+    .delete {
+      color: #dc2626
+    }
+
+    .history {
+      color: #0f766e
+    }
+
+    /* ===== TRANSACTION ===== */
+    .baki {
+      color: #dc2626;
+      font-weight: 600
+    }
+
+    .payment {
+      color: #16a34a;
+      font-weight: 600
+    }
+
+    /* ===== LOGIN PAGE ===== */
+    #loginPage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh
+    }
+
+    #loginPage input {
+      width: 80%;
+      margin: 6px 0;
+      padding: 10px;
+      font-size: 16px
+    }
+
+    #loginPage button {
+      width: 80%;
+      padding: 10px;
+      font-size: 16px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer
+    }
+
+    #loginPage button:hover {
+      opacity: .9
+    }
+  </style>
 </head>
 
 <body>
