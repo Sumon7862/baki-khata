@@ -210,13 +210,12 @@
   <!-- ================= PAGE 1 ================= -->
   <div class="container" id="page-list" style="display:none">
     <h1>📒 Baki Khata</h1>
-    <h2 style="background-color: black; color: white; padding: 4px; width: 50%; border-radius: 8px; margin: auto; font-weight: 300;">জানুয়ারির বাকি - 12710 টাকা</h2>
     <form id="addCustomerForm">
       <input id="customerName" placeholder="Customer Name" required>
       <button>Add Customer</button>
     </form>
     <input id="search" placeholder="Search Customer">
-    <h3 id="grandTotal">Current Due: 0</h3>
+    <h3 id="grandTotal">Current Due: 0 Taka</h3>
     <div>
       <!-- Global Totals Buttons -->
       <div style="display:flex;gap:8px;margin-top:10px">
@@ -288,20 +287,20 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, doc, deleteDoc, updateDoc,
       onSnapshot, query, orderBy, serverTimestamp, getDocs
-    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
     /* ===== FIREBASE ===== */
     const firebaseConfig = {
-      apiKey: "AIzaSyDO5I_osPflsq1MrPOY7YJ46iDNJKWlQWE",
-      authDomain: "baki-khata-e0941.firebaseapp.com",
-      projectId: "baki-khata-e0941"
+      apiKey: "AIzaSyC98t3vtPI1ifEozAGXDPivNFUkAFQ1RkI",
+      authDomain: "baki-khata-c4439.firebaseapp.com",
+      projectId: "baki-khata-c4439"
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -394,7 +393,7 @@
         <td class="icon history" onclick="downloadHistory('${c.id}','${c.name}')">📄</td>
       </tr>`;
         });
-      grandTotal.innerText = `Current Due: ${total}`;
+      grandTotal.innerText = `Current Due: ${total} Taka`;
       calculateGlobalTotals();
     }
     searchInput.oninput = () => renderCustomers(searchInput.value);
@@ -448,7 +447,7 @@
         </tr>`;
           });
 
-          detailBalance.innerText = `Current Due: ${balance}`;
+          detailBalance.innerText = `Current Due: ${balance} Taka`;
 
           // ✅ Update history page totals buttons
           customerDueBtn.innerText = `Total Due: ${totalDue}`;
